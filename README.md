@@ -142,14 +142,4 @@ class BuildTree {
     System.out.printf("%d = %s\n", 4, Arrays.toString(users.get(3).get(4)));
   }
 }
-```
 
-By discarding the third admin share and the first two sets of user shares, we have a set of shares
-which can be used to recover the original secret as long as either two admins or one admin and three
-users agree.
-
-## License
-
-Copyright © 2017 Coda Hale
-
-Distributed under the Apache License 2.0.
