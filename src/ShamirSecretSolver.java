@@ -1,63 +1,61 @@
-import java.io.FileReader;
+import java.io.*;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
-import com.google.gson.*;
+import org.json.*;
 
-public class ShamirSecretSolver {
+public class ShamirSecretSharingAssignment {
 
     public static void main(String[] args) throws Exception {
-        JsonObject testCase1 = JsonParser.parseReader(new FileReader("testcase1.json")).getAsJsonObject();
-        JsonObject testCase2 = JsonParser.parseReader(new FileReader("testcase2.json")).getAsJsonObject();
-
-        BigInteger secret1 = solveSecret(testCase1);
-        BigInteger secret2 = solveSecret(testCase2);
-
-        System.out.println("Secret for Test Case 1: " + secret1);
-        System.out.println("Secret for Test Case 2: " + secret2);
+        JSONObject testCase1 = new JSONObject(new String(Files.readAllBytes(Paths.get("testcase1.json"))));
+        JSONObject testCase2 = new JSONObject(new String(Files.readAllBytes(Paths.get("testcase2.json"))));
+        System.out.println(findConstantTerm(testCase1));
+        System.out.println(findConstantTerm(testCase2));
     }
+    private static BigInteger findConstantTerm(JSONObject json) {
+        JSONObject keys = json.getJSONObject("keys");
+        int n = keys.getInt("n");
+        int k = keys.getInt("k");
+        List<BigInteger> xVals = new ArrayList<>();
+        List<BigInteger> yVals = new ArrayList<>();
+        for (String key : json.keySet()) {
+            if (key.equals("keys")) continue;
+            
+            int x = Integer.parseInt(key);
+            JSONObject root = json.getJSONObject(key);
+            int base = Integer.parseInt(root.getString("base"));
+            String valStr = root.getString("value");
 
-    private static BigInteger solveSecret(JsonObject json) {
-        JsonObject keys = json.getAsJsonObject("keys");
-        int k = keys.get("k").getAsInt();
+            BigInteger y = new BigInteger(valStr, base);
 
-        List<BigInteger> xList = new ArrayList<>();
-        List<BigInteger> yList = new ArrayList<>();
-
-        for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
-            if (entry.getKey().equals("keys")) continue;
-
-            int x = Integer.parseInt(entry.getKey());
-            JsonObject point = entry.getValue().getAsJsonObject();
-
-            int base = Integer.parseInt(point.get("base").getAsString());
-            String encoded = point.get("value").getAsString();
-
-            BigInteger y = new BigInteger(encoded, base);
-            xList.add(BigInteger.valueOf(x));
-            yList.add(y);
+            xVals.add(BigInteger.valueOf(x));
+            yVals.add(y);
         }
+        List<BigInteger> xSubset = xVals.subList(0, k);
+        List<BigInteger> ySubset = yVals.subList(0, k);
 
-        return interpolateAtZero(xList.subList(0, k), yList.subList(0, k));
+        return lagrangeInterpolationAtZero(xSubset, ySubset);
     }
-
-    private static BigInteger interpolateAtZero(List<BigInteger> x, List<BigInteger> y) {
-        BigInteger result = BigInteger.ZERO;
+    private static BigInteger lagrangeInterpolationAtZero(List<BigInteger> x, List<BigInteger> y) {
         int k = x.size();
+        BigInteger result = BigInteger.ZERO;
 
         for (int i = 0; i < k; i++) {
-            BigInteger num = BigInteger.ONE;
-            BigInteger den = BigInteger.ONE;
+            BigInteger numerator = BigInteger.ONE;
+            BigInteger denominator = BigInteger.ONE;
 
             for (int j = 0; j < k; j++) {
-                if (i == j) continue;
-                num = num.multiply(x.get(j));
-                den = den.multiply(x.get(j).subtract(x.get(i)));
+                if (i != j) {
+                    numerator = numerator.multiply(x.get(j));
+                    denominator = denominator.multiply(x.get(j).subtract(x.get(i)));
+                }
             }
-
-            BigInteger term = y.get(i).multiply(num).divide(den);
+            
+            BigInteger term = y.get(i).multiply(numerator);
+            term = term.divide(denominator);
             result = result.add(term);
         }
-
         return result;
     }
 }
