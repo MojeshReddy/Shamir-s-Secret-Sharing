@@ -9,7 +9,7 @@ algorithm](http://en.wikipedia.org/wiki/Shamir's_Secret_Sharing) over GF(256).
 
 ```xml
 <dependency>
-  <groupId>com.codahale</groupId>
+  <groupId>com.mojesh</groupId>
   <artifactId>shamir</artifactId>
   <version>0.7.0</version>
 </dependency>
@@ -20,7 +20,6 @@ algorithm](http://en.wikipedia.org/wiki/Shamir's_Secret_Sharing) over GF(256).
 ## Use the thing
 
 ```java
-import com.codahale.shamir.Scheme;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Map;
